@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrustLens | Explainable AI Fake Review Detection System</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Admin Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="dark-theme">
+
+    <!-- Glowing Background Lights -->
+    <div class="ambient-light light-1"></div>
+    <div class="ambient-light light-2"></div>
+    <div class="ambient-light light-3"></div>
+
+    <!-- Navigation Header -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="#" class="brand-logo">
+                <div class="logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="logo-text">
+                    <span class="brand-name">TrustLens<span class="brand-accent">.ai</span></span>
+                    <span class="brand-tagline">Explainable Review AI</span>
+                </div>
+            </a>
+
+            <nav class="nav-links">
+                <button class="nav-item active" onclick="switchTab('detector-tab')">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Review Detector
+                </button>
+                <button class="nav-item" onclick="switchTab('history-tab')">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Review History
+                </button>
+                <button class="nav-item" onclick="switchTab('seller-tab')">
+                    <i class="fa-solid fa-store"></i> Seller Risk Analysis
+                </button>
+                <button class="nav-item" onclick="switchTab('admin-tab')">
+                    <i class="fa-solid fa-chart-pie"></i> Admin Dashboard
+                </button>
+                <button class="nav-item" onclick="switchTab('metrics-tab')">
+                    <i class="fa-solid fa-square-poll-vertical"></i> Model Metrics
+                </button>
+            </nav>
+
+
+            <div class="user-controls">
+                <div id="logged-out-view" class="auth-buttons">
+                    <button class="btn btn-outline" onclick="openAuthModal('login')">
+                        <i class="fa-solid fa-right-to-bracket"></i> Sign In
+                    </button>
+                    <button class="btn btn-primary" onclick="openAuthModal('register')">
+                        <i class="fa-solid fa-user-plus"></i> Register
+                    </button>
+                </div>
+                <div id="logged-in-view" class="user-profile-badge hidden">
+                    <div class="avatar"><i class="fa-solid fa-user-shield"></i></div>
+                    <div class="user-info">
+                        <span id="user-display-name" class="user-name">User</span>
+                        <span id="user-display-trust" class="user-trust-tag">Trust: 100%</span>
+                    </div>
+                    <button class="btn-icon" onclick="logout()" title="Logout">
+                        <i class="fa-solid fa-power-off"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="main-container">
+
+        <!-- TAB 1: LIVE REVIEW DETECTOR & XAI ENGINE -->
+        <section id="detector-tab" class="tab-content active">
+            <!-- Hero Banner -->
+            <div class="hero-banner">
+                <div class="hero-badge"><i class="fa-solid fa-microchip"></i> NLP + Explainable AI (SHAP/LIME Architecture)</div>
+                <h1 class="hero-title">Detect Fake Reviews with <span class="gradient-text">Transparent AI Explanations</span></h1>
+                <p class="hero-subtitle">Protecting consumers and online platforms against spam, review manipulation, and misleading ratings with real-time confidence scores and word-level feature breakdowns.</p>
+            </div>
+
+            <div class="detector-grid">
+                <!-- Input Panel -->
+                <div class="glass-card detector-input-card">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-pen-to-square"></i> Submit Review for Analysis</h2>
+                        <span class="status-indicator live">Real-time Inference</span>
+                    </div>
+
+                    <form id="review-form" onsubmit="handleReviewSubmit(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="product-name"><i class="fa-solid fa-box"></i> Product Name</label>
+                                <input type="text" id="product-name" placeholder="e.g. Wireless Noise Cancelling Headphones" required value="Wireless Noise Cancelling Headphones">
+                            </div>
+                            <div class="form-group">
+                                <label for="category"><i class="fa-solid fa-tags"></i> Category</label>
+                                <select id="category">
+                                    <option value="Electronics">Electronics</option>
+                                    <option value="Fashion">Fashion & Clothing</option>
+                                    <option value="Home & Kitchen">Home & Kitchen</option>
+                                    <option value="Beauty">Beauty & Personal Care</option>
+                                    <option value="Books">Books & Media</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="seller-select"><i class="fa-solid fa-store"></i> Select Seller</label>
+                                <select id="seller-select">
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fa-solid fa-star"></i> Review Rating</label>
+                                <div class="rating-picker">
+                                    <input type="radio" id="star5" name="rating" value="5" checked><label for="star5">5 ★</label>
+                                    <input type="radio" id="star4" name="rating" value="4"><label for="star4">4 ★</label>
+                                    <input type="radio" id="star3" name="rating" value="3"><label for="star3">3 ★</label>
+                                    <input type="radio" id="star2" name="rating" value="2"><label for="star2">2 ★</label>
+                                    <input type="radio" id="star1" name="rating" value="1"><label for="star1">1 ★</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="review-text"><i class="fa-solid fa-comment-dots"></i> Review Text</label>
+                            <textarea id="review-text" rows="5" placeholder="Enter product review text here to analyze for fake indicators..." required>BEST PRODUCT EVER HIGHLY RECOMMENDED BUY NOW BUY NOW AMAZING SUPER FAST DISCOUNTS!</textarea>
+                        </div>
+
+                        <!-- Sample Test Buttons -->
+                        <div class="quick-samples">
+                            <span class="sample-label">Try Preset Test Samples:</span>
+                            <button type="button" class="btn-sample fake" onclick="fillSample('fake')">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Fake Sample
+                            </button>
+                            <button type="button" class="btn-sample genuine" onclick="fillSample('genuine')">
+                                <i class="fa-solid fa-circle-check"></i> Genuine Sample
+                            </button>
+                            <button type="button" class="btn-sample suspicious" onclick="fillSample('suspicious')">
+                                <i class="fa-solid fa-shield-cat"></i> Mismatch Sample
+                            </button>
+                        </div>
+
+                        <div class="action-row">
+                            <button type="submit" id="btn-analyze" class="btn btn-primary btn-glow">
+                                <i class="fa-solid fa-magnifying-glass-chart"></i> Analyze Review Authenticity
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Prediction & XAI Output Panel -->
+                <div class="glass-card detector-result-card" id="result-card">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-chart-column"></i> Prediction & XAI Explanation</h2>
+                        <span id="result-timestamp" class="result-time">Ready</span>
+                    </div>
+
+                    <!-- Placeholder before analysis -->
+                    <div id="result-placeholder" class="result-placeholder-state">
+                        <div class="placeholder-icon"><i class="fa-solid fa-brain"></i></div>
+                        <h3>Awaiting Review Submission</h3>
+                        <p>Submit a review text on the left to view real-time classification, confidence scores, and word-level feature contributions.</p>
+                    </div>
+
+                    <!-- Active Result View -->
+                    <div id="result-active" class="result-active-state hidden">
+                        <!-- Classification Banner -->
+                        <div id="classification-badge" class="prediction-badge fake">
+                            <div class="badge-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div class="badge-content">
+                                <span class="badge-label">Prediction Status</span>
+                                <h3 id="class-title">FAKE REVIEW DETECTED</h3>
+                            </div>
+                        </div>
+
+                        <!-- Confidence Gauges -->
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <span class="metric-title">Confidence Score</span>
+                                <div class="confidence-bar-container">
+                                    <div id="confidence-progress" class="confidence-progress-fill" style="width: 85%;"></div>
+                                </div>
+                                <span id="confidence-value" class="metric-value">85.0%</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-title">Fake Probability</span>
+                                <span id="fake-prob-value" class="metric-value danger-text">85.0%</span>
+                            </div>
+                            <div class="metric-card">
+                                <span class="metric-title">Genuine Probability</span>
+                                <span id="genuine-prob-value" class="metric-value success-text">15.0%</span>
+                            </div>
+                        </div>
+
+                        <!-- XAI Word-Level Contribution View -->
+                        <div class="xai-section">
+                            <div class="xai-header">
+                                <h4><i class="fa-solid fa-wand-sparkles"></i> Explainable AI: Word-Level Importance (SHAP/LIME)</h4>
+                                <div class="xai-legend">
+                                    <span class="legend-item fake"><span class="dot"></span> Fake Indicator</span>
+                                    <span class="legend-item genuine"><span class="dot"></span> Genuine Indicator</span>
+                                    <span class="legend-item neutral"><span class="dot"></span> Neutral</span>
+                                </div>
+                            </div>
+                            <div id="xai-word-container" class="xai-word-box">
+                                <!-- Highlighted words rendered dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Explanation Summary & Rules -->
+                        <div class="explanation-box">
+                            <h4><i class="fa-solid fa-circle-info"></i> Transparent AI Explanation Summary</h4>
+                            <p id="explanation-text" class="explanation-desc">Analyzing...</p>
+                            
+                            <div class="rules-list-container">
+                                <h5>Detected Behavioral Rules & Anomalies:</h5>
+                                <ul id="rules-list" class="rules-list">
+                                    <!-- Rules populated dynamically -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OCR IMAGE UPLOAD SECTION -->
+            <div class="glass-card ocr-upload-card" id="ocr-section">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-image"></i> Scan Review from Image <span class="ocr-badge">OCR Powered</span></h2>
+                    <span class="status-indicator live">Tesseract AI Engine</span>
+                </div>
+                <p class="ocr-desc">Upload a screenshot or photo of a review. Our OCR engine will extract the text automatically and fill the form above for instant AI analysis.</p>
+
+                <div class="ocr-upload-area" id="ocr-drop-zone">
+                    <input type="file" id="ocr-file-input" accept="image/*" style="display:none" onchange="handleOCRFileSelect(event)">
+                    <div class="ocr-drop-inner" onclick="document.getElementById('ocr-file-input').click()">
+                        <div class="ocr-drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                        <p class="ocr-drop-title">Drop Image Here or Click to Browse</p>
+                        <p class="ocr-drop-hint">Supports JPG, PNG, WEBP, BMP, GIF &bull; Max 16 MB</p>
+                    </div>
+                </div>
+
+                <!-- Image Preview -->
+                <div id="ocr-preview-container" class="ocr-preview-box hidden">
+                    <img id="ocr-preview-img" src="" alt="Review image preview" class="ocr-img-preview">
+                    <div class="ocr-preview-info">
+                        <span id="ocr-file-name" class="ocr-file-label"></span>
+                        <button class="btn btn-outline btn-sm" onclick="clearOCRImage()"><i class="fa-solid fa-xmark"></i> Remove</button>
+                    </div>
+                </div>
+
+                <!-- OCR Result -->
+                <div id="ocr-result-box" class="ocr-result hidden">
+                    <div class="ocr-result-header">
+                        <i class="fa-solid fa-file-lines"></i>
+                        <span id="ocr-word-count" class="ocr-word-count"></span>
+                    </div>
+                    <p class="ocr-extracted-label">Extracted Text (editable):</p>
+                    <textarea id="ocr-extracted-text" class="ocr-text-area" rows="4" placeholder="Extracted text will appear here..."></textarea>
+                    <div class="ocr-actions">
+                        <button class="btn btn-primary" onclick="useOCRText()">
+                            <i class="fa-solid fa-arrow-up-right-dots"></i> Use This Text for Analysis
+                        </button>
+                        <button class="btn btn-success" onclick="submitOCRReview()">
+                            <i class="fa-solid fa-magnifying-glass-chart"></i> Analyze OCR Review Directly
+                        </button>
+                    </div>
+                </div>
+
+                <!-- OCR Controls -->
+                <div class="ocr-btn-row">
+                    <button class="btn btn-primary btn-glow" id="btn-extract-ocr" onclick="runOCR()" disabled>
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Extract Text from Image
+                    </button>
+                    <div id="ocr-loading" class="ocr-loading hidden">
+                        <i class="fa-solid fa-spinner fa-spin"></i> Processing image with Tesseract OCR...
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TAB 2: REVIEW HISTORY -->
+        <section id="history-tab" class="tab-content">
+
+            <!-- Page Title -->
+            <div class="page-title-bar">
+                <div>
+                    <h2 class="page-title"><i class="fa-solid fa-clock-rotate-left"></i> Review History &amp; Predictions Log</h2>
+                    <p class="page-subtitle">All submitted reviews analyzed by the ML engine — filterable by category, rating, and classification result.</p>
+                </div>
+                <button class="btn btn-outline" onclick="loadReviewHistory()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+            </div>
+
+            <!-- Summary Stat Cards -->
+            <div class="history-stats-row">
+                <div class="hstat-card">
+                    <i class="fa-solid fa-layer-group hstat-icon purple"></i>
+                    <div>
+                        <span id="hs-total" class="hstat-number">0</span>
+                        <span class="hstat-label">Total Reviews</span>
+                    </div>
+                </div>
+                <div class="hstat-card">
+                    <i class="fa-solid fa-triangle-exclamation hstat-icon danger"></i>
+                    <div>
+                        <span id="hs-fake" class="hstat-number">0</span>
+                        <span class="hstat-label">Fake Detected</span>
+                    </div>
+                </div>
+                <div class="hstat-card">
+                    <i class="fa-solid fa-circle-check hstat-icon success"></i>
+                    <div>
+                        <span id="hs-genuine" class="hstat-number">0</span>
+                        <span class="hstat-label">Genuine Verified</span>
+                    </div>
+                </div>
+                <div class="hstat-card">
+                    <i class="fa-solid fa-shield-cat hstat-icon warning"></i>
+                    <div>
+                        <span id="hs-suspicious" class="hstat-number">0</span>
+                        <span class="hstat-label">Suspicious</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters Bar -->
+            <div class="glass-card filter-bar">
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-magnifying-glass"></i> Search</label>
+                    <input type="text" id="hist-search" placeholder="Search product or review text..." oninput="applyHistoryFilters()">
+                </div>
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-tags"></i> Category</label>
+                    <select id="hist-category" onchange="applyHistoryFilters()">
+                        <option value="All">All Categories</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Fashion">Fashion</option>
+                        <option value="Furniture">Furniture</option>
+                        <option value="Home &amp; Kitchen">Home &amp; Kitchen</option>
+                        <option value="Beauty">Beauty</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-star"></i> Rating</label>
+                    <select id="hist-rating" onchange="applyHistoryFilters()">
+                        <option value="All">All Ratings</option>
+                        <option value="5">5 Stars</option>
+                        <option value="4">4 Stars</option>
+                        <option value="3">3 Stars</option>
+                        <option value="2">2 Stars</option>
+                        <option value="1">1 Star</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-filter"></i> Status</label>
+                    <select id="hist-class" onchange="applyHistoryFilters()">
+                        <option value="All">All Results</option>
+                        <option value="Fake">Fake</option>
+                        <option value="Genuine">Genuine</option>
+                        <option value="Suspicious">Suspicious</option>
+                    </select>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="clearHistoryFilters()"><i class="fa-solid fa-xmark"></i> Clear</button>
+            </div>
+
+            <!-- Review Table -->
+            <div class="glass-card">
+                <div class="table-responsive">
+                    <table class="custom-table" id="history-table">
+                        <thead>
+                            <tr>
+                                <th>#ID</th>
+                                <th>Source</th>
+                                <th>Product &amp; Category</th>
+                                <th>Seller</th>
+                                <th>Rating</th>
+                                <th>Review Text</th>
+                                <th>Classification</th>
+                                <th>Confidence</th>
+                                <th>Date &amp; Time</th>
+                                <th>Image</th>
+                                <th>XAI</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <tr><td colspan="9" class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i> Loading reviews...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p id="history-empty" class="empty-hint hidden">No reviews match the selected filters.</p>
+            </div>
+
+            <!-- XAI Detail Drawer (inline slide-in) -->
+            <div id="xai-drawer" class="xai-drawer hidden">
+                <div class="xai-drawer-header">
+                    <h4><i class="fa-solid fa-wand-sparkles"></i> Explainable AI Breakdown</h4>
+                    <button onclick="closeXaiDrawer()" class="btn-icon"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div id="xai-drawer-badge" class="prediction-badge fake" style="margin-bottom:1rem;"></div>
+                <div class="metrics-grid" style="margin-bottom:1rem;">
+                    <div class="metric-card">
+                        <span class="metric-title">Confidence Score</span>
+                        <div class="confidence-bar-container"><div id="drawer-progress" class="confidence-progress-fill" style="width:0%"></div></div>
+                        <span id="drawer-conf-val" class="metric-value">-</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">Fake %</span>
+                        <span id="drawer-fake-val" class="metric-value danger-text">-</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">Genuine %</span>
+                        <span id="drawer-genuine-val" class="metric-value success-text">-</span>
+                    </div>
+                </div>
+                <div class="xai-section">
+                    <div class="xai-header">
+                        <h4><i class="fa-solid fa-wand-sparkles"></i> Word Contributions</h4>
+                        <div class="xai-legend">
+                            <span class="legend-item fake"><span class="dot"></span> Fake</span>
+                            <span class="legend-item genuine"><span class="dot"></span> Genuine</span>
+                            <span class="legend-item neutral"><span class="dot"></span> Neutral</span>
+                        </div>
+                    </div>
+                    <div id="drawer-words" class="xai-word-box"></div>
+                </div>
+                <div class="explanation-box" style="margin-top:1rem;">
+                    <h4><i class="fa-solid fa-circle-info"></i> Explanation Summary</h4>
+                    <p id="drawer-summary" class="explanation-desc"></p>
+                    <ul id="drawer-rules" class="rules-list"></ul>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TAB 3: SELLER RISK ANALYSIS -->
+        <section id="seller-tab" class="tab-content">
+
+            <!-- Page Title -->
+            <div class="page-title-bar">
+                <div>
+                    <h2 class="page-title"><i class="fa-solid fa-store"></i> Seller Risk Analysis &amp; Verification Center</h2>
+                    <p class="page-subtitle">Marketplace sellers monitored for fake review ratios, deceptive rating boosts, and automated risk scoring.</p>
+                </div>
+                <button class="btn btn-outline" onclick="loadSellersGrid()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+            </div>
+
+            <!-- Seller Summary Stat Cards -->
+            <div class="history-stats-row">
+                <div class="hstat-card">
+                    <i class="fa-solid fa-building-user hstat-icon purple"></i>
+                    <div>
+                        <span id="ss-total" class="hstat-number">0</span>
+                        <span class="hstat-label">Monitored Sellers</span>
+                    </div>
+                </div>
+                <div class="hstat-card">
+                    <i class="fa-solid fa-triangle-exclamation hstat-icon danger"></i>
+                    <div>
+                        <span id="ss-high" class="hstat-number">0</span>
+                        <span class="hstat-label">High Risk Sellers</span>
+                    </div>
+                </div>
+                <div class="hstat-card">
+                    <i class="fa-solid fa-triangle-exclamation hstat-icon warning"></i>
+                    <div>
+                        <span id="ss-medium" class="hstat-number">0</span>
+                        <span class="hstat-label">Medium Risk Sellers</span>
+                    </div>
+                </div>
+                <div class="hstat-card">
+                    <i class="fa-solid fa-circle-check hstat-icon success"></i>
+                    <div>
+                        <span id="ss-low" class="hstat-number">0</span>
+                        <span class="hstat-label">Low Risk / Trustworthy</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seller Filters Bar -->
+            <div class="glass-card filter-bar">
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-magnifying-glass"></i> Search Seller</label>
+                    <input type="text" id="seller-search" placeholder="Search by seller name or brand..." oninput="applySellerFilters()">
+                </div>
+                <div class="filter-group">
+                    <label><i class="fa-solid fa-shield-cat"></i> Risk Status</label>
+                    <select id="seller-risk-filter" onchange="applySellerFilters()">
+                        <option value="All">All Risk Levels</option>
+                        <option value="Low Risk">Low Risk</option>
+                        <option value="Medium Risk">Medium Risk</option>
+                        <option value="High Risk">High Risk</option>
+                    </select>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="clearSellerFilters()"><i class="fa-solid fa-xmark"></i> Clear</button>
+            </div>
+
+            <!-- Sellers Grid -->
+            <div class="sellers-card-grid" id="sellers-grid">
+                <!-- Populated dynamically -->
+            </div>
+            <p id="seller-empty" class="empty-hint hidden">No sellers match the selected filter criteria.</p>
+
+        </section>
+
+        <!-- TAB 4: ADMIN MONITORING DASHBOARD -->
+        <section id="admin-tab" class="tab-content">
+            <!-- Stat Counter Cards -->
+            <div class="admin-stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fa-solid fa-comments"></i></div>
+                    <div class="stat-info">
+                        <span id="stat-total-reviews" class="stat-number">0</span>
+                        <span class="stat-label">Total Reviews Analyzed</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon danger"><i class="fa-solid fa-user-ninja"></i></div>
+                    <div class="stat-info">
+                        <span id="stat-fake-reviews" class="stat-number">0</span>
+                        <span class="stat-label">Fake Reviews Flagged</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon success"><i class="fa-solid fa-shield-check"></i></div>
+                    <div class="stat-info">
+                        <span id="stat-genuine-reviews" class="stat-number">0</span>
+                        <span class="stat-label">Genuine Reviews</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon warning"><i class="fa-solid fa-store-slash"></i></div>
+                    <div class="stat-info">
+                        <span id="stat-high-risk-sellers" class="stat-number">0</span>
+                        <span class="stat-label">High-Risk Sellers</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-grid">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-chart-pie"></i> Review Classification Distribution</h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="classificationChart"></canvas>
+                    </div>
+                </div>
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-chart-bar"></i> Reviews by Category</h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Data Logs -->
+            <div class="glass-card margin-top">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-list-check"></i> System Activity Data Logs</h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>#ID</th>
+                                <th>User ID</th>
+                                <th>Action</th>
+                                <th>Target</th>
+                                <th>Details</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-logs-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: MODEL PERFORMANCE & BENCHMARKING (Chapter 5 Requirements) -->
+        <section id="metrics-tab" class="tab-content">
+            <div class="glass-card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-square-poll-vertical"></i> Machine Learning Classifier Evaluation & Comparison</h2>
+                    <button class="btn btn-outline btn-sm" onclick="loadModelMetrics()"><i class="fa-solid fa-rotate"></i> Re-Run Benchmark</button>
+                </div>
+                <p class="tab-intro">Comparative accuracy, precision, recall, and F1-score evaluation across standard classifiers trained on TF-IDF feature vectors.</p>
+
+                <div class="table-responsive margin-top">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Classifier Algorithm</th>
+                                <th>Accuracy (%)</th>
+                                <th>Precision (%)</th>
+                                <th>Recall (%)</th>
+                                <th>F1-Score (%)</th>
+                                <th>Confusion Matrix (TN / FP / FN / TP)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="metrics-table-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="charts-grid margin-top">
+                    <div class="glass-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-chart-line"></i> Model Accuracy Comparison</h3>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="modelComparisonChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-bullseye"></i> Best Performing Model Breakdown</h3>
+                        </div>
+                        <div id="best-model-info" class="explanation-box margin-top">
+                            <h4 id="best-model-title"><i class="fa-solid fa-trophy"></i> Best Classifier: Loading...</h4>
+                            <p id="best-model-desc" class="explanation-desc">Evaluating performance metrics...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+
+    <!-- AUTH MODAL (Login / Register) -->
+    <div id="auth-modal" class="modal-overlay hidden">
+        <div class="modal-card glass-card">
+            <button class="modal-close" onclick="closeAuthModal()"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div class="modal-tabs">
+                <button id="auth-tab-login" class="modal-tab active" onclick="switchAuthTab('login')">Sign In</button>
+                <button id="auth-tab-register" class="modal-tab" onclick="switchAuthTab('register')">Create Account</button>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-envelope"></i> Email Address</label>
+                    <input type="email" id="login-email" placeholder="user@fakecheck.ai" required value="user@fakecheck.ai">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-lock"></i> Password</label>
+                    <input type="password" id="login-password" placeholder="••••••••" required value="user123">
+                </div>
+                <div class="auth-quick-hint">
+                    <span>Demo Accounts:</span>
+                    <button type="button" class="btn-link" onclick="fillAuth('user@fakecheck.ai', 'user123')">User</button> | 
+                    <button type="button" class="btn-link" onclick="fillAuth('admin@fakecheck.ai', 'admin123')">Admin</button>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block margin-top">Sign In</button>
+            </form>
+
+            <!-- REGISTER FORM -->
+            <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-user"></i> Full Name</label>
+                    <input type="text" id="reg-name" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-envelope"></i> Email Address</label>
+                    <input type="email" id="reg-email" placeholder="john@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-lock"></i> Password</label>
+                    <input type="password" id="reg-password" placeholder="Create password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block margin-top">Register Account</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
